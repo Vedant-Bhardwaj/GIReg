@@ -15,7 +15,7 @@ est_cqr <- function(y, c, x, w, nqreg, c1, c2, nsteps){
   ncensored <- (y > c)
   pred <- fitted(glm(ncensored ~ x - 1, weights = w, family = binomial(logit)))
   coefqr <- est_qr(y, x, w, nqreg)
-
+  
   for(i in 1:nqreg){
     quant <- i/nqreg - 0.5/nqreg
     fit   <- x %*% coefqr[, i]
@@ -42,7 +42,7 @@ est_cqr <- function(y, c, x, w, nqreg, c1, c2, nsteps){
       coef[, i] <- coefqr[, i]
     }
   }
-
+  
   # --- only difference: wrap columns as "qr_like" objects with predict() support
   feature_names <- colnames(x) %||% paste0("V", seq_len(ncol(x)))  # ensure names
   fits <- lapply(seq_len(nqreg), function(i){
@@ -53,6 +53,6 @@ est_cqr <- function(y, c, x, w, nqreg, c1, c2, nsteps){
   })
   names(fits) <- paste0("tau", (1:nqreg)/nqreg - 0.5/nqreg)
   #names(fits) <- paste0("tau", tau_grid)
-  # print(fits)
+ # print(fits)
   list(fits = fits, X_poly = x)
 }
