@@ -67,30 +67,38 @@ fit_qr_multi <- function(
 }
 
 
-predict_cdf_qr_multi <- function(fits, X_new, y0) {
+predict_cdf_qr_multi <- function(fits, X_new, y0,c=0) {
   # must expand X_new the same way
   #X_new_poly <- poly_features(X_new, degree = as.integer(sqrt(obs)/(2*p)))
   #X_new_poly<- legendre_features(X, degree = as.integer(sqrt(obs)/p))
   #X_new_poly<- fourier_features(X, nbasis  = 2)
-
-
+  
+  
   #X_new_poly <-spline_features(X, df = as.integer(sqrt(obs)/(2*p)))
   #X_new_poly <-add_interactions_2_3_4(X)
   X_new_poly <-X_new
-
+  
   n_pts    <- nrow(X_new_poly)
-
+  
   # matrix of quantile predictions: rows = tau, cols = points
   Q <- sapply(fits, function(f) {
     predict(f, newdata = data.frame(X_new_poly))
   })
   Q <- t(Q)  # now length(tau_grid) × n_pts
-  # print(fits)
+ # print(fits)
+  if (length(c) == 1) {
+    c <- rep(c, n_pts)
+  } else if (length(c) != n_pts) {
+    stop("c must have length 1 or nrow(X_new).")
+  }
+  
+  # floor each column i by c_vec[i]
+  Q <- pmax(Q, matrix(c, nrow = nrow(Q), ncol = ncol(Q), byrow = TRUE))
   if (length(y0) == 1) y0 <- rep(y0, n_pts)
   #print(Q)
   #print(y0)
   cdf <- vapply(seq_len(n_pts), function(i) {
-    mean(y0[i] > Q[, i])
+    mean(y0[i] >= Q[, i])
   }, numeric(1))
   #print(cdf)
   return(cdf)
